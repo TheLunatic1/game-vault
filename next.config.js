@@ -5,16 +5,14 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'images.igdb.com',
-        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'i.pravatar.cc',
-        pathname: '/**',
       },
     ],
   },
-  reactCompiler: true,
+  reactStrictMode: true,
 };
 
 export default nextConfig;
