@@ -1,23 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function AllGames() {
   const [games, setGames] = useState([]);
-  const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [loading, setLoading] = useState(true);
 
-  // Fetch ALL games from MongoDB
+  // Fetch games once
   useEffect(() => {
     fetch("/api/games")
       .then((res) => res.json())
       .then((data) => {
         setGames(data);
-        setFiltered(data);
         setLoading(false);
       })
       .catch(() => {
@@ -25,22 +23,14 @@ export default function AllGames() {
       });
   }, []);
 
-  // Filter games when search/category changes
-  useEffect(() => {
-    let result = games;
-
-    if (search) {
-      result = result.filter((g) =>
-        g.title.toLowerCase().includes(search.toLowerCase())
-      );
-    }
-
-    if (category !== "all") {
-      result = result.filter((g) => g.genre === category);
-    }
-
-    setFiltered(result);
-  }, [search, category, games]);
+  // Filter games using useMemo (BEST PRACTICE – no warning!)
+  const filtered = useMemo(() => {
+    return games.filter((game) => {
+      const matchesSearch = game.title?.toLowerCase().includes(search.toLowerCase());
+      const matchesCategory = category === "all" || game.genre === category;
+      return matchesSearch && matchesCategory;
+    });
+  }, [games, search, category]);
 
   if (loading) {
     return (
@@ -87,7 +77,9 @@ export default function AllGames() {
         {/* Games Grid */}
         {filtered.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-2xl opacity-60">No games found</p>
+            <p className="text-2xl opacity-60">
+              {search || category !== "all" ? "No games found" : "No games in the vault yet"}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -110,7 +102,7 @@ export default function AllGames() {
                       <span>{game.platform || "PC"}</span>
                     </div>
                     <div className="mt-3 text-xs opacity-60">
-                      Added by {game.userName?.split(" ")[0] || "User"}
+                      by {game.userName?.split(" ")[0] || "Gamer"}
                     </div>
                   </div>
                 </div>
