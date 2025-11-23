@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // Ensures fresh data on every visit
 
 export default async function GameDetails({ params }) {
   const { id } = params;
@@ -10,13 +10,18 @@ export default async function GameDetails({ params }) {
   let error = null;
 
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_VERCEL_URL ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` : "http://localhost:3000"}/api/games/${id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ""}/api/games`, {
       cache: "no-store",
     });
 
-    if (!res.ok) throw new Error("Game not found");
+    if (!res.ok) throw new Error("Failed to fetch games");
 
-    game = await res.json();
+    const allGames = await res.json();
+    game = allGames.find((g) => g._id === id);
+
+    if (!game) {
+      error = "Game not found";
+    }
   } catch (err) {
     error = "Failed to load game details";
   }
@@ -42,12 +47,13 @@ export default async function GameDetails({ params }) {
           ← Back to Games
         </Link>
 
-        {/* Desktop Layout */}
+        {/* Desktop: Portrait Left + Text Right */}
         <div className="hidden lg:grid lg:grid-cols-12 gap-10 items-start">
+          {/* Left: Portrait Cover */}
           <div className="col-span-5">
             <div className="relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl ring-4 ring-primary/20">
               <Image
-                src={game.image || "/placeholder.jpg"}
+                src={game.image || "https://images.igdb.com/igdb/image/upload/t_cover_big/co1wzo.jpg"}
                 alt={game.title}
                 fill
                 className="object-cover"
@@ -56,10 +62,11 @@ export default async function GameDetails({ params }) {
             </div>
           </div>
 
+          {/* Right: Game Info */}
           <div className="col-span-7 space-y-8">
             <div>
               <h1 className="text-6xl font-bold leading-tight">{game.title}</h1>
-              <p className="text-xl opacity-70 mt-2">Added by {game.userName || "Gamer"}</p>
+              <p className="text-xl opacity-70 mt-2">Added by {game.userName || "Anonymous Gamer"}</p>
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -68,29 +75,33 @@ export default async function GameDetails({ params }) {
               {game.year && <span className="badge badge-accent badge-lg">{game.year}</span>}
             </div>
 
-            <p className="text-xl leading-relaxed opacity-90">{game.description}</p>
+            <div className="text-lg space-y-4">
+              <p className="leading-relaxed text-xl opacity-90">{game.description}</p>
+              
+              {game.developer && (
+                <p>
+                  <span className="font-semibold">Developer:</span> {game.developer}
+                </p>
+              )}
+            </div>
 
-            {game.developer && (
-              <p className="text-lg">
-                <span className="font-semibold">Developer:</span> {game.developer}
+            <div className="pt-6">
+              <p className="text-sm opacity-60">
+                Added on {new Date(game.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
               </p>
-            )}
-
-            <p className="text-sm opacity-60 pt-6">
-              Added on {new Date(game.createdAt).toLocaleDateString("en-US", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
+            </div>
           </div>
         </div>
 
-        {/* Mobile Layout */}
+        {/* Mobile: Cover Top + Text Below */}
         <div className="lg:hidden space-y-8">
-          <div className="relative aspect-[3/4] w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-2xl">
+          <div className="relative aspect-[3/4] w-full max-w-sm mx-auto rounded-2xl overflow-hidden shadow-2xl ring-4 ring-primary/20">
             <Image
-              src={game.image || "/placeholder.jpg"}
+              src={game.image || "https://images.igdb.com/igdb/image/upload/t_cover_big/co1wzo.jpg"}
               alt={game.title}
               fill
               className="object-cover"
@@ -99,8 +110,10 @@ export default async function GameDetails({ params }) {
           </div>
 
           <div className="text-center space-y-6">
-            <h1 className="text-5xl font-bold">{game.title}</h1>
-            <p className="text-lg opacity-70">by {game.userName || "Gamer"}</p>
+            <div>
+              <h1 className="text-5xl font-bold">{game.title}</h1>
+              <p className="text-lg opacity-70 mt-2">by {game.userName || "Gamer"}</p>
+            </div>
 
             <div className="flex flex-wrap justify-center gap-3">
               <span className="badge badge-primary badge-lg">{game.genre || "Unknown"}</span>
@@ -108,10 +121,16 @@ export default async function GameDetails({ params }) {
               {game.year && <span className="badge badge-accent badge-lg">{game.year}</span>}
             </div>
 
-            <p className="text-lg leading-relaxed px-4">{game.description}</p>
+            <p className="text-lg leading-relaxed opacity-90 px-4">{game.description}</p>
 
-            <p className="text-sm opacity-60">
-              Added {new Date(game.createdAt).toLocaleDateString()}
+            {game.developer && (
+              <p className="text-lg">
+                <span className="font-semibold">Developer:</span> {game.developer}
+              </p>
+            )}
+
+            <p className="text-sm opacity-60 pt-4">
+              Added on {new Date(game.createdAt).toLocaleDateString()}
             </p>
           </div>
         </div>
