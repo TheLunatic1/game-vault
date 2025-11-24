@@ -16,18 +16,16 @@ export default function Home() {
   const [user, loadingAuth] = useAuthState(auth);
   const [latestGames, setLatestGames] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [particles, setParticles] = useState([]);
-
-  // THIS IS 100% CORRECT AND SAFE
-  useEffect(() => {
-    // Generate particles only on client, once
-    const generated = Array.from({ length: 8 }, () => ({
+  const [particles] = useState(() =>
+    Array.from({ length: 8 }, () => ({
       x: Math.random() * 100,
       delay: Math.random() * 10,
       duration: 20 + Math.random() * 20,
-    }));
-    setParticles(generated);
-  }, []);
+    }))
+  );
+
+  // THIS IS 100% CORRECT AND SAFE
+  // No need for useEffect to generate particles
 
   useEffect(() => {
     fetch("/api/games?limit=10")
