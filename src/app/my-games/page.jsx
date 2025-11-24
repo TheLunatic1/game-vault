@@ -61,8 +61,25 @@ export default function MyGames() {
                 <div className="card-body p-5">
                   <h2 className="card-title text-lg">{game.title}</h2>
                   <p className="text-sm opacity-70">{game.genre}</p>
-                  <div className="card-actions mt-4">
-                    <Link href="/games" className="btn btn-primary btn-sm w-full">View</Link>
+                  <div className="card-actions mt-4 flex gap-2">
+                    <Link href={`/games/${game._id}`} className="btn btn-primary btn-sm flex-1">
+                      View
+                    </Link>
+                    <Link href={`/edit-game/${game._id}`} className="btn btn-accent btn-sm">
+                      Edit
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        if (confirm("Delete this game forever?")) {
+                          await fetch(`/api/games/${game._id}`, { method: "DELETE" });
+                          toast.success("Game deleted");
+                          setMyGames(myGames.filter(g => g._id !== game._id));
+                        }
+                      }}
+                      className="btn btn-error btn-sm"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               </div>
