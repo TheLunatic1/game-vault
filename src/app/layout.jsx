@@ -1,7 +1,7 @@
 import "./globals.css";
 import ThemeProvider from "@/components/ThemeProvider";
 import ToastProvider from "@/components/ToastProvider";
-
+import Footer from "@/components/Footer";
 import SessionWrapper from "@/components/SessionWrapper";
 import Navbar from "./Navbar";
 
@@ -26,6 +26,7 @@ export default function RootLayout({ children }) {
             <main>{children}</main>
           </ThemeProvider>
         </SessionWrapper>
+        <Footer />
       </body>
     </html>
   );
